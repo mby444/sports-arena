@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminBookingController;
+use App\Http\Controllers\Admin\AdminCourtController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Mobile\MobileController;
+use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,4 +34,25 @@ Route::post('/logout', [MobileController::class, 'logout'])->name('mobile.logout
 Route::middleware('auth')->group(function () {
     Route::get('/my-bookings', [MobileController::class, 'myBookings'])->name('mobile.my-bookings');
     Route::get('/profile', [MobileController::class, 'profile'])->name('mobile.profile');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Web Admin Dashboard Routes (Venue Management Portal)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->middleware(['auth', AdminMiddleware::class])->group(function () {
+    Route::get('/', fn () => redirect()->route('admin.dashboard'));
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+    // Courts Management
+    Route::get('/courts', [AdminCourtController::class, 'index'])->name('admin.courts');
+    Route::post('/courts', [AdminCourtController::class, 'store'])->name('admin.courts.store');
+    Route::put('/courts/{court}', [AdminCourtController::class, 'update'])->name('admin.courts.update');
+    Route::post('/courts/{court}/toggle', [AdminCourtController::class, 'toggle'])->name('admin.courts.toggle');
+
+    // Bookings & Check-in Control
+    Route::get('/bookings', [AdminBookingController::class, 'index'])->name('admin.bookings');
+    Route::post('/bookings/{booking}/check-in', [AdminBookingController::class, 'checkIn'])->name('admin.bookings.checkin');
+    Route::post('/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel'])->name('admin.bookings.cancel');
 });
